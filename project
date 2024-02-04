@@ -1,0 +1,107 @@
+class User:
+    def __init__(self, user_id, pin, balance=0):
+        self.user_id = user_id
+        self.pin = pin
+        self.balance = balance
+        self.transaction_history = []
+
+    def check_balance(self):
+        return self.balance
+
+    def deposit(self, amount):
+        self.balance += amount
+        self.transaction_history.append(f"Deposit: +${amount}")
+
+    def withdraw(self, amount):
+        if amount <= self.balance:
+            self.balance -= amount
+            self.transaction_history.append(f"Withdrawal: -${amount}")
+        else:
+            print("Insufficient funds.")
+
+    def transfer(self, recipient, amount):
+        if amount <= self.balance:
+            self.balance -= amount
+            recipient.deposit(amount)
+            self.transaction_history.append(f"Transfer to {recipient.user_id}: -${amount}")
+        else:
+            print("Insufficient funds.")
+
+    def get_transaction_history(self):
+        return self.transaction_history
+
+
+class ATM:
+    def __init__(self):
+        self.users = {}
+
+    def create_user(self, user_id, pin):
+        user = User(user_id, pin)
+        self.users[user_id] = user
+        return user
+
+    def authenticate_user(self, user_id, pin):
+        user = self.users.get(user_id)
+        if user and user.pin == pin:
+            return user
+        else:
+            return None
+
+
+def main():
+    atm = ATM()
+
+    # Create users for testing
+    user1 = atm.create_user("123456", "7890")
+    user2 = atm.create_user("987654", "4321")
+
+    # User authentication
+    user_id = input("Enter User ID: ")
+    pin = input("Enter PIN: ")
+
+    authenticated_user = atm.authenticate_user(user_id, pin)
+
+    if authenticated_user:
+        print(f"Welcome, {authenticated_user.user_id}!")
+
+        while True:
+            print("\n1. Check Balance")
+            print("2. Deposit")
+            print("3. Withdraw")
+            print("4. Transfer")
+            print("5. Transaction History")
+            print("6. Quit")
+
+            choice = input("Enter choice (1-6): ")
+
+            if choice == '1':
+                print(f"Your balance is ${authenticated_user.check_balance()}")
+            elif choice == '2':
+                amount = float(input("Enter deposit amount: "))
+                authenticated_user.deposit(amount)
+            elif choice == '3':
+                amount = float(input("Enter withdrawal amount: "))
+                authenticated_user.withdraw(amount)
+            elif choice == '4':
+                recipient_id = input("Enter recipient's User ID: ")
+                amount = float(input("Enter transfer amount: "))
+                recipient = atm.users.get(recipient_id)
+                if recipient:
+                    authenticated_user.transfer(recipient, amount)
+                else:
+                    print("Recipient not found.")
+            elif choice == '5':
+                print("Transaction History:")
+                for transaction in authenticated_user.get_transaction_history():
+                    print(transaction)
+            elif choice == '6':
+                print("Exiting ATM. Thank you!")
+                break
+            else:
+                print("Invalid choice. Please enter a number between 1 and 6.")
+    else:
+        print("Authentication failed. Invalid User ID or PIN.")
+
+
+if __name__ == "__main__":
+    main()
